@@ -2,7 +2,7 @@
  # @Author: 喵二
  # @Date: 2023-10-12 21:52:25
  # @LastEditors: 喵二
- # @LastEditTime: 2023-10-12 22:03:48
+ # @LastEditTime: 2023-10-12 22:07:37
  # @FilePath: \catwrt-repo\catwrt-repo
 ### 
 #!/bin/bash
@@ -27,10 +27,12 @@ source /tmp/catwrt-repo.json
 
 # 获取用户选择
 read -p "Enter [1] for amd64 or [2] for mt798x: " arch_choice
+
 if [ $arch_choice -eq 1 ]; then
   arch_config=${amd64} 
 elif [ $arch_choice -eq 2 ]; then
   arch_config=${mt798x}
+fi
 else
   echo "Invalid choice"
   exit 1
