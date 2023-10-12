@@ -1,81 +1,97 @@
 ###
- # @Author: 喵二
- # @Date: 2023-10-12 21:52:25
- # @LastEditors: 喵二
- # @LastEditTime: 2023-10-12 22:07:37
- # @FilePath: \catwrt-repo\catwrt-repo
+ # @Author: 2860950766@qq.com
+ # @Date: 2023-10-12 22:25:55
+ # @LastEditors: 2860950766@qq.com
+ # @LastEditTime: 2023-10-12 23:09:25
+ # @FilePath: \undefinedd:\Git\catwrt-repo\catwrt-repo
 ### 
 #!/bin/bash
 
-# 测试 api 连接
+# TEST API
+
 ping -c 1 api.miaoer.xyz > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "Cannot reach api.miaoer.xyz, please contact developer for support."
   exit 1
 fi
 
-# 备份配置
+# backup distfeeds
 if ! grep -q "catwrt" /etc/opkg/distfeeds.conf; then
   cp /etc/opkg/distfeeds.conf /etc/opkg/distfeeds_o.conf
 fi
 
-# 下载配置到临时文件
+# Downloads
 curl -s https://api.miaoer.xyz/api/v2/snippets/catwrt/repo > /tmp/catwrt-repo.json
 
-# 导入配置  
+# use
 source /tmp/catwrt-repo.json
 
-# 获取用户选择
+# arch
 read -p "Enter [1] for amd64 or [2] for mt798x: " arch_choice
 
 if [ $arch_choice -eq 1 ]; then
-  arch_config=${amd64} 
+  arch_config=${amd64}
 elif [ $arch_choice -eq 2 ]; then
   arch_config=${mt798x}
-fi
 else
   echo "Invalid choice"
   exit 1
 fi
 
-# 测试源连接
+# Testing connection
 echo "Testing connection to sources..."
 
 tcping -c 1 ${amd64[cfmain]} > /dev/null 2>&1 
-tcping -c 1 ${amd64[vercel]} > /dev/null 2>&1
-tcping -c 1 ${amd64[netlify]} > /dev/null 2>&1
-tcping -c 1 ${amd64[cfvercel]} > /dev/null 2>&1
-tcping -c 1 ${amd64[cfnetlify]} > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: ${[cfmain]} unreachable."
+fi
 
-# 选择源 
+tcping -c 1 ${amd64[vercel]} > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: ${[vercel]} unreachable."
+fi
+
+tcping -c 1 ${amd64[netlify]} > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: ${[netlify]} unreachable."
+fi
+
+tcping -c 1 ${amd64[cfvercel]} > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: ${[cfvercel]} unreachable."
+fi
+
+tcping -c 1 ${amd64[cfnetlify]} > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: ${[cfnetlify]} unreachable."
+fi
+
+# Select software source
 PS3="Select software source: "
 select source in cfmain vercel netlify cfvercel cfnetlify local; do
   break
 done
 
-# 获取源地址
+# local
 if [ $source == "local" ]; then
-  # 用户输入本地源
   read -p "Enter local software source url: " source
 else
-  # 从配置中获取云源地址
-  source=${arch_config[$source]}  
+  source=${arch_config[$source]}
 fi
 
-# 更新软件源配置
+# Update distfeeds
 if [ -f /etc/opkg/distfeeds_o.conf ]; then
 
   read -p "Backup found. Replace sources? [Y/n] " confirm
   if [ "$confirm" == "Y" ]; then
     
-    # 替换为新源  
     cat > /etc/opkg/distfeeds.conf <<EOF
-    src/gz openwrt_core $source/${arch_config[openwrt_core]}
-    src/gz openwrt_base $source/${arch_config[openwrt_base]}
-    src/gz openwrt_luci $source/${arch_config[openwrt_luci]}
-    src/gz openwrt_packages $source/${arch_config[openwrt_packages]}
-    src/gz openwrt_routing $source/${arch_config[openwrt_routing]}
-    src/gz openwrt_telephony $source/${arch_config[openwrt_telephony]}
+       src/gz openwrt_core $source/${arch_config[openwrt_core]}  
+       src/gz openwrt_base $source/${arch_config[openwrt_base]}
+       src/gz openwrt_luci $source/${arch_config[openwrt_luci]}
+       src/gz openwrt_packages $source/${arch_config[openwrt_packages]}
+       src/gz openwrt_routing $source/${arch_config[openwrt_routing]}
+       src/gz openwrt_telephony $source/${arch_config[openwrt_telephony]}
     EOF
 
   else
@@ -85,18 +101,20 @@ if [ -f /etc/opkg/distfeeds_o.conf ]; then
 else
 
   cat > /etc/opkg/distfeeds.conf <<EOF
-  src/gz openwrt_core $source/${arch_config[openwrt_core]}
-  src/gz openwrt_base $source/${arch_config[openwrt_base]}
-  src/gz openwrt_luci $source/${arch_config[openwrt_luci]}
-  src/gz openwrt_packages $source/${arch_config[openwrt_packages]}
-  src/gz openwrt_routing $source/${arch_config[openwrt_routing]}
-  src/gz openwrt_telephony $source/${arch_config[openwrt_telephony]}
+    src/gz openwrt_core $source/${arch_config[openwrt_core]}
+    src/gz openwrt_base $source/${arch_config[openwrt_base]}
+    src/gz openwrt_luci $source/${arch_config[openwrt_luci]}
+    src/gz openwrt_packages $source/${arch_config[openwrt_packages]}
+    src/gz openwrt_routing $source/${arch_config[openwrt_routing]}
+    src/gz openwrt_telephony $source/${arch_config[openwrt_telephony]}
   EOF
   
-fi  
+fi 
 
-# 更新索引
-rm -f /var/lock/opkg.lock  
+# opkg update
+
+rm -f /var/lock/opkg.lock
 opkg update
 
 echo "Software sources updated successfully!"
+echo "Enjoy!"
