@@ -1,5 +1,11 @@
 #!/bin/bash
 
+ping -c 1 api.miaoer.xyz > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Cannot reach api.miaoer.xyz, please contact developer for support."
+  exit 1
+fi
+
 # 检查是否已备份,如果没有备份则备份
 if ! grep -q "catwrt" /etc/opkg/distfeeds.conf; then
   cp /etc/opkg/distfeeds.conf /etc/opkg/distfeeds_o.conf
