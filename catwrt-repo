@@ -9,21 +9,21 @@ fi
 repo=$(curl -s https://api.miaoer.xyz/api/v2/snippets/catwrt/repo)
 source <(echo "$repo")  
 
-# 获取用户的 arch 类型选择  
-read -p "Enter 1 for amd64 or 2 for mt798x: " arch_choice
+# 获取用户的arch类型选择  
+read -p "Enter [1]amd64 or for [2]mt798x: " arch_choice
 
 if [ $arch_choice -eq 1 ]; then
-  arch_config=${amd64} 
+  arch_config=${amd64}
 elif [ $arch_choice -eq 2 ]; then
-  arch_config=${mt798x}
+  arch_config=${mt798x}  
 else
   echo "Invalid choice"
   exit 1
 fi
 
 # 选择软件源
-PS3='Select software source (1-cfmain, 2-vercel, 3-netlify, 4-cfvercel, 5-cfnetlify): '
-select source in cfmain vercel netlify cfvercel cfnetlify; do
+PS3='Select software source (1-cfmain, 2-vercel, 3-netlify, 4-cfvercel, 5-cfnetlify, 6-local): '
+select source in cfmain vercel netlify cfvercel cfnetlify local; do
   break
 done
 
@@ -32,15 +32,18 @@ source_num=$(echo $source | grep -o '[0-9]*')
 
 # 根据数字构建软件源
 if [ $source_num -eq 1 ]; then
-  source=${arch_config[cfmain]}  
+  source=${arch_config[cfmain]}
 elif [ $source_num -eq 2 ]; then
   source=${arch_config[vercel]}
 elif [ $source_num -eq 3 ]; then
-  source=${arch_config[netlify]}  
+  source=${arch_config[netlify]} 
 elif [ $source_num -eq 4 ]; then
-  source=${arch_config[cfvercel]}  
+  source=${arch_config[cfvercel]}
 elif [ $source_num -eq 5 ]; then
   source=${arch_config[cfnetlify]}
+elif [ $source_num -eq 6 ]; then
+  # 私有本地源,提示用户输入
+  read -p "Enter private & local software source url: " source  
 fi
 
 # 检查是否存在备份文件
