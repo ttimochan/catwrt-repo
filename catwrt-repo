@@ -2,7 +2,7 @@
  # @Author: 喵二
  # @Date: 2023-10-12 21:52:25
  # @LastEditors: 喵二
- # @LastEditTime: 2023-10-12 22:00:08
+ # @LastEditTime: 2023-10-12 22:01:20
  # @FilePath: \catwrt-repo\catwrt-repo
 ### 
 #!/bin/bash
@@ -68,7 +68,7 @@ if [ -f /etc/opkg/distfeeds_o.conf ]; then
     
     # 替换为新源  
     cat > /etc/opkg/distfeeds.conf <<EOF
-    src/gz openwrt_core $source
+    src/gz openwrt_core $source/${arch_config[openwrt_core]}
     src/gz openwrt_base $source/${arch_config[openwrt_base]}
     src/gz openwrt_luci $source/${arch_config[openwrt_luci]}
     src/gz openwrt_packages $source/${arch_config[openwrt_packages]}
@@ -83,7 +83,7 @@ if [ -f /etc/opkg/distfeeds_o.conf ]; then
 else
 
   cat > /etc/opkg/distfeeds.conf <<EOF
-  src/gz openwrt_core $source  
+  src/gz openwrt_core $source/${arch_config[openwrt_core]}
   src/gz openwrt_base $source/${arch_config[openwrt_base]}
   src/gz openwrt_luci $source/${arch_config[openwrt_luci]}
   src/gz openwrt_packages $source/${arch_config[openwrt_packages]}
