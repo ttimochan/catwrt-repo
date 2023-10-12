@@ -1,98 +1,74 @@
+###
+ # @Author: 喵二
+ # @Date: 2023-10-12 21:52:25
+ # @LastEditors: 喵二
+ # @LastEditTime: 2023-10-12 22:00:08
+ # @FilePath: \catwrt-repo\catwrt-repo
+### 
 #!/bin/bash
 
+# 测试 api 连接
 ping -c 1 api.miaoer.xyz > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "Cannot reach api.miaoer.xyz, please contact developer for support."
   exit 1
 fi
 
-# 检查是否已备份,如果没有备份则备份
+# 备份配置
 if ! grep -q "catwrt" /etc/opkg/distfeeds.conf; then
   cp /etc/opkg/distfeeds.conf /etc/opkg/distfeeds_o.conf
 fi
 
-# 从远程读取配置
-repo=$(curl -s https://api.miaoer.xyz/api/v2/snippets/catwrt/repo)
-source <(echo "$repo")  
+# 下载配置到临时文件
+curl -s https://api.miaoer.xyz/api/v2/snippets/catwrt/repo > /tmp/catwrt-repo.json
 
-# 获取用户的arch类型选择  
-read -p "Enter [1]amd64 or for [2]mt798x: " arch_choice
+# 导入配置  
+source /tmp/catwrt-repo.json
 
+# 获取用户选择
+read -p "Enter [1] for amd64 or [2] for mt798x: " arch_choice
 if [ $arch_choice -eq 1 ]; then
-  arch_config=${amd64}
+  arch_config=${amd64[cfmain]} 
 elif [ $arch_choice -eq 2 ]; then
-  arch_config=${mt798x}  
+  arch_config=${mt798x[cfmain]}
 else
-  echo "Invalid choice"
+  echo "Invalid choice" 
   exit 1
 fi
 
-## connection test
+# 测试源连接
+echo "Testing connection to sources..."
 
-echo "Testing connection to software sources..."
+tcping -c 1 ${amd64[cfmain]} > /dev/null 2>&1 
+tcping -c 1 ${amd64[vercel]} > /dev/null 2>&1
+tcping -c 1 ${amd64[netlify]} > /dev/null 2>&1
+tcping -c 1 ${amd64[cfvercel]} > /dev/null 2>&1
+tcping -c 1 ${amd64[cfnetlify]} > /dev/null 2>&1
 
-tcping -c 1 ${arch_config[cfmain]} > /dev/null 2>&1
-if [ $arch_choice -eq 1 ]; then
-  echo "${arch_config[cfmain]} unreachable."
-fi
-
-tcping -c 1 ${arch_config[vercel]} > /dev/null 2>&1  
-if [ $arch_choice -eq 1 ]; then
-  echo "${arch_config[vercel]} unreachable."   
-fi
-
-tcping -c 1 ${arch_config[netlify]} > /dev/null 2>&1
-if [ $arch_choice -eq 1 ]; then
-  echo "${arch_config[netlify]} unreachable."
-fi
-
-tcping -c 1 ${arch_config[cfvercel]} > /dev/null 2>&1
-if [ $arch_choice -eq 1 ]; then
-  echo "${arch_config[cfvercel]} unreachable." 
-fi
-
-tcping -c 1 ${arch_config[cfnetlify]} > /dev/null 2>&1
-if [ $arch_choice -eq 1 ]; then
-  echo "${arch_config[cfnetlify]} unreachable."
-fi
-
-# 选择软件源
-PS3='Select software source (1-cfmain, 2-vercel, 3-netlify, 4-cfvercel, 5-cfnetlify, 6-local): '
+# 选择源 
+PS3="Select software source: "
 select source in cfmain vercel netlify cfvercel cfnetlify local; do
   break
 done
 
-# 获取选择的数字
-source_num=$(echo $source | grep -o '[0-9]*')
-
-# 根据数字构建软件源
-if [ $source_num -eq 1 ]; then
-  source=${arch_config[cfmain]}
-elif [ $source_num -eq 2 ]; then
-  source=${arch_config[vercel]}
-elif [ $source_num -eq 3 ]; then
-  source=${arch_config[netlify]} 
-elif [ $source_num -eq 4 ]; then
-  source=${arch_config[cfvercel]}
-elif [ $source_num -eq 5 ]; then
-  source=${arch_config[cfnetlify]}
-elif [ $source_num -eq 6 ]; then
-  # 私有本地源,提示用户输入
-  read -p "Enter private & local software source url: " source  
+# 获取源地址
+if [ $source == "local" ]; then
+  # 用户输入本地源
+  read -p "Enter local software source url: " source
+else
+  # 从配置中获取云源地址
+  source=${arch_config[$source]}  
 fi
 
-# 检查是否存在备份文件
+# 更新软件源配置
 if [ -f /etc/opkg/distfeeds_o.conf ]; then
 
-  # 提示用户选择 
-  read -p "Backup software sources found. Replace with catwrt? [Y/n] " confirm
-  
-  if [ "$confirm" == "Y" ] || [ "$confirm" == "y" ]; then  
-    # 用户选择了替换
+  read -p "Backup found. Replace sources? [Y/n] " confirm
+  if [ "$confirm" == "Y" ]; then
     
-    # 构建新软件源配置
+    # 替换为新源  
     cat > /etc/opkg/distfeeds.conf <<EOF
-    src/gz openwrt_core $source  
+    src/gz openwrt_core $source
     src/gz openwrt_base $source/${arch_config[openwrt_base]}
     src/gz openwrt_luci $source/${arch_config[openwrt_luci]}
     src/gz openwrt_packages $source/${arch_config[openwrt_packages]}
@@ -101,28 +77,24 @@ if [ -f /etc/opkg/distfeeds_o.conf ]; then
     EOF
 
   else
-    # 用户选择了禁用 
-    
     rm -f /etc/opkg/distfeeds.conf
-    
   fi
-  
+
 else
 
-  # 没有备份文件,直接构建新配置
   cat > /etc/opkg/distfeeds.conf <<EOF
-  src/gz openwrt_core $source
+  src/gz openwrt_core $source  
   src/gz openwrt_base $source/${arch_config[openwrt_base]}
-  src/gz openwrt_luci $source/${arch_config[openwrt_luci]} 
+  src/gz openwrt_luci $source/${arch_config[openwrt_luci]}
   src/gz openwrt_packages $source/${arch_config[openwrt_packages]}
   src/gz openwrt_routing $source/${arch_config[openwrt_routing]}
   src/gz openwrt_telephony $source/${arch_config[openwrt_telephony]}
   EOF
+  
+fi  
 
-fi
-
-# 更新软件源索引
-rm -f /var/lock/opkg.lock
+# 更新索引
+rm -f /var/lock/opkg.lock  
 opkg update
 
 echo "Software sources updated successfully!"
