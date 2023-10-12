@@ -32,27 +32,27 @@ fi
 echo "Testing connection to software sources..."
 
 tcping -c 1 ${arch_config[cfmain]} > /dev/null 2>&1
-if [ $? -ne 0 ];then
+if [ $arch_choice -eq 1 ]; then
   echo "${arch_config[cfmain]} unreachable."
 fi
 
 tcping -c 1 ${arch_config[vercel]} > /dev/null 2>&1  
-if [ $? -ne 0 ];then
+if [ $arch_choice -eq 1 ]; then
   echo "${arch_config[vercel]} unreachable."   
 fi
 
 tcping -c 1 ${arch_config[netlify]} > /dev/null 2>&1
-if [ $? -ne 0 ];then
+if [ $arch_choice -eq 1 ]; then
   echo "${arch_config[netlify]} unreachable."
 fi
 
 tcping -c 1 ${arch_config[cfvercel]} > /dev/null 2>&1
-if [ $? -ne 0 ];then
+if [ $arch_choice -eq 1 ]; then
   echo "${arch_config[cfvercel]} unreachable." 
 fi
 
 tcping -c 1 ${arch_config[cfnetlify]} > /dev/null 2>&1
-if [ $? -ne 0 ];then
+if [ $arch_choice -eq 1 ]; then
   echo "${arch_config[cfnetlify]} unreachable."
 fi
 
