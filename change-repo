@@ -72,12 +72,12 @@ speedtest_mirror() {
 replace_mirror() {
     mirror_url="https://${fastest_domain}"
     cat >"$MIRROR_FILE" <<EOF
-    src/gz openwrt_core ${mirror_url}/${arch_self}openwrt_core
-    src/gz openwrt_base ${mirror_url}/${arch_self}openwrt_base
-    src/gz openwrt_luci ${mirror_url}/${arch_self}openwrt_luci
-    src/gz openwrt_packages ${mirror_url}/${arch_self}openwrt_packages
-    src/gz openwrt_routing ${mirror_url}/${arch_self}openwrt_routing
-    src/gz openwrt_telephony ${mirror_url}/${arch_self}openwrt_telephony
+    src/gz openwrt_core ${mirror_url}/${arch_self}/openwrt_core
+    src/gz openwrt_base ${mirror_url}/${arch_self}/openwrt_base
+    src/gz openwrt_luci ${mirror_url}/${arch_self}/openwrt_luci
+    src/gz openwrt_packages ${mirror_url}/${arch_self}/openwrt_packages
+    src/gz openwrt_routing ${mirror_url}/${arch_self}/openwrt_routing
+    src/gz openwrt_telephony ${mirror_url}/${arch_self}/openwrt_telephony
 EOF
 
 }
